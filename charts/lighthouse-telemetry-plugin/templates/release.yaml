@@ -1,0 +1,16 @@
+{{- if and (.Capabilities.APIVersions.Has "jenkins.io/v1/Release") (hasKey .Values.jx "releaseCRD") (.Values.jx.releaseCRD)}}
+apiVersion: jenkins.io/v1
+kind: Release
+metadata:
+  creationTimestamp: "2021-05-06T09:32:57Z"
+  deletionTimestamp: null
+  name: '{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}'
+spec:
+  gitHttpUrl: https://github.com/jenkins-x/lighthouse-telemetry-plugin
+  gitOwner: jenkins-x
+  gitRepository: lighthouse-telemetry-plugin
+  name: '{{ .Chart.Name }}'
+  version: 0.0.1
+status: {}
+ 
+{{- end }}
