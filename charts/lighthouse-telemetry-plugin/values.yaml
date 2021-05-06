@@ -1,0 +1,83 @@
+# Default values for the Helm Chart
+
+fullnameOverride:
+nameOverride:
+
+config:
+  resyncInterval: 1h
+  logLevel: INFO
+
+secrets:
+  lighthouse:
+    hmac:
+      secretKeyRef:
+        name: lighthouse-hmac-token
+        key: hmac
+
+jx:
+  # whether to create a Release CRD when installing charts with Release CRDs included
+  releaseCRD: true
+
+image:
+  repository: gcr.io/jenkinsxio/lighthouse-telemetry-plugin
+  # If no tag, fallback to the Chart's AppVersion
+  tag:
+  pullPolicy:
+
+deployment:
+  replicas: 1
+  revisionHistoryLimit: 2
+  labels: {}
+  annotations: {}
+
+pod:
+  resources:
+    requests:
+      cpu: "0.2"
+      memory: 256M
+    limits:
+      cpu: "1"
+      memory: 512M
+  labels: {}
+  annotations: {}
+  activeDeadlineSeconds:
+  enableServiceLinks: false
+  terminationGracePeriodSeconds:
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  hostAliases: []
+  schedulerName:
+  securityContext:
+    fsGroup: 1000
+  env: {}
+
+service:
+  port: 80
+  type:
+  loadBalancerIP:
+  labels: {}
+  annotations: {}
+
+serviceAccount:
+  # allow additional annotations to be added to the ServiceAccount
+  # such as for workload identity on clouds
+  annotations: {}
+
+role:
+  rules:
+  - apiGroups: ["jenkins.io"]
+    resources: ["pipelineactivities"]
+    verbs: ["list", "watch", "get", "patch"]
+  - apiGroups: ["tekton.dev"]
+    resources: ["pipelineruns", "taskruns"]
+    verbs: ["list", "watch", "get", "patch"]
+  - apiGroups: ["lighthouse.jenkins.io"]
+    resources: ["lighthousejobs"]
+    verbs: ["list", "watch", "get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "watch", "get", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list", "watch", "get"]
