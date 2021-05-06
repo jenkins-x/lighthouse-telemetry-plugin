@@ -1,4 +1,4 @@
-apiVersion: v2
+apiVersion: v1
 name: lighthouse-telemetry-plugin
 description: Lighthouse plugin to export telemetry data, including distributed traces
 icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-website/master/images/logo/jenkinsx-icon-color.svg
