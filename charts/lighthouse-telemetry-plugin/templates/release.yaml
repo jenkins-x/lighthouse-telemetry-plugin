@@ -1,0 +1,33 @@
+{{- if and (.Capabilities.APIVersions.Has "jenkins.io/v1/Release") (hasKey .Values.jx "releaseCRD") (.Values.jx.releaseCRD)}}
+apiVersion: jenkins.io/v1
+kind: Release
+metadata:
+  creationTimestamp: "2021-05-17T14:03:03Z"
+  deletionTimestamp: null
+  name: '{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}'
+spec:
+  commits:
+  - author:
+      email: v.behar@free.fr
+      name: Vincent Behar
+    branch: master
+    committer:
+      email: v.behar@free.fr
+      name: Vincent Behar
+    message: |
+      fix: avoid breaking tekton reconciliation
+
+      on old tekton v0.11.3 (used in jx v2), the pipelinerun reconciliation might fail because the tekton controller can't update the pipelinerun, because it has been changed (by our patching operation).
+      this is turn result in multiple taskruns being created (1 for each reconciliation attempt).
+
+      the "fix" is to wait until the initial reconciliation is finished, which is after the tekton controller has updated the PR labels, adding the `tekton.dev/pipeline` label.
+      which is why here we are now waiting until this label is present before handling the PR.
+    sha: 2162812b9605d11375c2c5ae7ef6d913566ba013
+  gitHttpUrl: https://github.com/jenkins-x/lighthouse-telemetry-plugin
+  gitOwner: jenkins-x
+  gitRepository: lighthouse-telemetry-plugin
+  name: '{{ .Chart.Name }}'
+  version: 0.0.3
+status: {}
+ 
+{{- end }}
