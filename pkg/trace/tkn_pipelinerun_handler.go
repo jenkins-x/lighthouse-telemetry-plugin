@@ -78,6 +78,12 @@ func (h *TektonPipelineRunHandler) handlePipelineRun(pr *tknv1beta1.PipelineRun)
 		pr.Annotations = make(map[string]string)
 	}
 
+	if _, ok := pr.Labels["tekton.dev/pipeline"]; !ok {
+		// let's wait for the tekton controller to finish the PR reconciliation before patching it
+		// to avoid reconciliation failure (because of PR update failure), and the creation of multiple TR
+		return nil
+	}
+
 	span, err := h.getSpanFor(pr)
 	if errors.Is(err, ErrEventTraceNotFound) {
 		return nil
