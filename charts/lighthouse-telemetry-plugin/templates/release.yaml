@@ -1,0 +1,56 @@
+{{- if and (.Capabilities.APIVersions.Has "jenkins.io/v1/Release") (hasKey .Values.jx "releaseCRD") (.Values.jx.releaseCRD)}}
+apiVersion: jenkins.io/v1
+kind: Release
+metadata:
+  creationTimestamp: "2021-05-20T13:39:20Z"
+  deletionTimestamp: null
+  name: '{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}'
+spec:
+  commits:
+  - author:
+      email: v.behar@free.fr
+      name: Vincent Behar
+    branch: master
+    committer:
+      email: v.behar@free.fr
+      name: Vincent Behar
+    issueIds:
+    - "2"
+    message: |
+      fix: avoid breaking lighthouse job creation
+
+      similar as #2 but for lighthouse
+
+      lighthouse creates its jobs in 2 steps:
+      - for the job with its spec
+      - and then it updates the status to set the initial state ("triggered")
+
+      if we patch the job in the middle of these 2 steps, the status update will fail, and the job creation will fail, and the pipeline won't be triggered
+
+      the fix is to wait until the state is defined in the status before patching the job
+    sha: 71de25e6e9c7722c4f487e8f8708569c13f3c99d
+  gitHttpUrl: https://github.com/jenkins-x/lighthouse-telemetry-plugin
+  gitOwner: jenkins-x
+  gitRepository: lighthouse-telemetry-plugin
+  name: '{{ .Chart.Name }}'
+  pullRequests:
+  - body: "on old tekton v0.11.3 (used in jx v2), the pipelinerun reconciliation might
+      fail because the tekton controller can't update the pipelinerun, because it
+      has been changed (by our patching operation).\r\nthis is turn result in multiple
+      taskruns being created (1 for each reconciliation attempt).\r\n\r\nthe \"fix\"
+      is to wait until the initial reconciliation is finished, which is after the
+      tekton controller has updated the PR labels, adding the `tekton.dev/pipeline`
+      label.\r\nwhich is why here we are now waiting until this label is present before
+      handling the PR."
+    creationTimestamp: "2021-05-17T13:49:34Z"
+    id: "2"
+    labels:
+    - url: approved
+    - url: size/XS
+    state: closed
+    title: 'fix: avoid breaking tekton reconciliation'
+    url: https://github.com/jenkins-x/lighthouse-telemetry-plugin/pull/2
+  version: 0.0.4
+status: {}
+ 
+{{- end }}

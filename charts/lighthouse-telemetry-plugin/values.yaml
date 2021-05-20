@@ -21,7 +21,7 @@ jx:
 image:
   repository: gcr.io/jenkinsxio/lighthouse-telemetry-plugin
   # If no tag, fallback to the Chart's AppVersion
-  tag:
+  tag: 0.0.4
   pullPolicy:
 
 deployment:
