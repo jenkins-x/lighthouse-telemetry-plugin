@@ -79,6 +79,12 @@ func (h *LighthouseJobHandler) handleLighthouseJob(job *lhv1alpha1.LighthouseJob
 		job.Annotations = make(map[string]string)
 	}
 
+	if job.Status.State == "" {
+		// let's wait for lighthouse to finish the job creation before patching it
+		// to avoid creation failure (because of job status update failure), and "non-triggered" pipelines
+		return nil
+	}
+
 	span, eventTrace, err := h.getSpanFor(job)
 	if errors.Is(err, ErrEventTraceNotFound) {
 		return nil
