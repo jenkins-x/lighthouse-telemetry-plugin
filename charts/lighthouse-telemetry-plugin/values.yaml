@@ -19,9 +19,9 @@ jx:
   releaseCRD: true
 
 image:
-  repository: gcr.io/jenkinsxio/lighthouse-telemetry-plugin
+  repository: ghcr.io/jenkins-x/lighthouse-telemetry-plugin
   # If no tag, fallback to the Chart's AppVersion
-  tag:
+  tag: 0.0.5
   pullPolicy:
 
 deployment:
