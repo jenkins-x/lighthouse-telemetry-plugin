@@ -115,7 +115,7 @@ func (h *LighthouseJobHandler) handleLighthouseJob(job *lhv1alpha1.LighthouseJob
 	return nil
 }
 
-func (h *LighthouseJobHandler) getSpanFor(job *lhv1alpha1.LighthouseJob) (*SpanHolder, *EventTrace, error) {
+func (h *LighthouseJobHandler) getSpanFor(job *lhv1alpha1.LighthouseJob) (*EventSpan, *EventTrace, error) {
 	_, spanContext, err := extractTraceFrom(job.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(job)
@@ -178,7 +178,7 @@ func (h *LighthouseJobHandler) createSpanFor(job *lhv1alpha1.LighthouseJob) erro
 	}
 	h.Store.AddLighthouseJob(job)
 
-	eventTrace.AddSpan(SpanHolder{
+	eventTrace.AddSpan(EventSpan{
 		Span: span,
 		Entity: Entity{
 			Type: EntityTypeLighthouseJob,

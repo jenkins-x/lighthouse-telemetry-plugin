@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/jenkins-x/lighthouse-telemetry-plugin/internal/otelcarrier"
 	"go.opentelemetry.io/otel/propagation"
@@ -25,7 +26,7 @@ var (
 type EventTrace struct {
 	EventGUID  string
 	RootSpan   trace.Span
-	spans      map[trace.SpanID]SpanHolder
+	spans      map[trace.SpanID]EventSpan
 	spansMutex sync.RWMutex
 }
 
@@ -33,18 +34,18 @@ func NewEventTrace(eventGUID string, rootSpan trace.Span) *EventTrace {
 	return &EventTrace{
 		EventGUID: eventGUID,
 		RootSpan:  rootSpan,
-		spans:     make(map[trace.SpanID]SpanHolder),
+		spans:     make(map[trace.SpanID]EventSpan),
 	}
 }
 
-func (t EventTrace) GetSpan(spanID trace.SpanID) (SpanHolder, bool) {
+func (t EventTrace) GetSpan(spanID trace.SpanID) (EventSpan, bool) {
 	t.spansMutex.RLock()
 	defer t.spansMutex.RUnlock()
 	span, found := t.spans[spanID]
 	return span, found
 }
 
-func (t EventTrace) FindSpanFor(entityType EntityType, entityName string) (SpanHolder, bool) {
+func (t EventTrace) FindSpanFor(entityType EntityType, entityName string) (EventSpan, bool) {
 	t.spansMutex.RLock()
 	defer t.spansMutex.RUnlock()
 	for _, span := range t.spans {
@@ -52,10 +53,10 @@ func (t EventTrace) FindSpanFor(entityType EntityType, entityName string) (SpanH
 			return span, true
 		}
 	}
-	return SpanHolder{}, false
+	return EventSpan{}, false
 }
 
-func (t EventTrace) AddSpan(span SpanHolder) {
+func (t *EventTrace) AddSpan(span EventSpan) {
 	t.spansMutex.Lock()
 	defer t.spansMutex.Unlock()
 	t.spans[span.SpanContext().SpanID()] = span
@@ -85,9 +86,84 @@ func (t EventTrace) EndRootSpanIfNeeded(options ...trace.SpanOption) {
 	}
 }
 
-type SpanHolder struct {
+type EventSpan struct {
 	trace.Span
 	Entity Entity
+}
+
+type GitopsTrace struct {
+	rootSpanID trace.SpanID
+	spans      map[trace.SpanID]*GitopsSpan
+	spansMutex sync.RWMutex
+}
+
+func NewGitopsTrace(rootSpan GitopsSpan) *GitopsTrace {
+	return &GitopsTrace{
+		rootSpanID: rootSpan.SpanContext().SpanID(),
+		spans: map[trace.SpanID]*GitopsSpan{
+			rootSpan.SpanContext().SpanID(): &rootSpan,
+		},
+	}
+}
+
+func (t GitopsTrace) RootSpan() *GitopsSpan {
+	t.spansMutex.RLock()
+	defer t.spansMutex.RUnlock()
+	return t.spans[t.rootSpanID]
+}
+
+func (t GitopsTrace) GetSpan(spanID trace.SpanID) (*GitopsSpan, bool) {
+	t.spansMutex.RLock()
+	defer t.spansMutex.RUnlock()
+	span, found := t.spans[spanID]
+	if found {
+		return span, true
+	}
+	return nil, false
+}
+
+func (t GitopsTrace) GetSpanFor(pr PullRequest) (*GitopsSpan, bool) {
+	t.spansMutex.RLock()
+	defer t.spansMutex.RUnlock()
+	for i := range t.spans {
+		if t.spans[i].PullRequest == pr {
+			return t.spans[i], true
+		}
+	}
+	return nil, false
+}
+
+func (t *GitopsTrace) AddSpan(span GitopsSpan) {
+	t.spansMutex.Lock()
+	defer t.spansMutex.Unlock()
+	t.spans[span.SpanContext().SpanID()] = &span
+}
+
+func (t *GitopsTrace) SpanChildren(spanID trace.SpanID) []*GitopsSpan {
+	t.spansMutex.RLock()
+	defer t.spansMutex.RUnlock()
+	var spans []*GitopsSpan
+	for i := range t.spans {
+		if t.spans[i].ParentSpanID == spanID {
+			spans = append(spans, t.spans[i])
+		}
+	}
+	return spans
+}
+
+func (t *GitopsTrace) IterateOnGitopsSpans(callback func(gitopsSpan *GitopsSpan)) {
+	t.spansMutex.RLock()
+	defer t.spansMutex.RUnlock()
+	for i := range t.spans {
+		callback(t.spans[i])
+	}
+}
+
+type GitopsSpan struct {
+	trace.Span
+	PullRequest       PullRequest
+	PullRequestClosed *time.Time
+	ParentSpanID      trace.SpanID
 }
 
 func extractTraceFrom(annotations map[string]string) (context.Context, trace.SpanContext, error) {

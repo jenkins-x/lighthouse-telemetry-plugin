@@ -20,18 +20,14 @@ func (h *LighthouseEventHandler) handleWebhook(webhook scm.Webhook) error {
 	var err error
 	switch event := webhook.(type) {
 	case *scm.IssueCommentHook:
+		// TODO switch/case on the event.Action. don't care about deleted comments
 		log.
 			WithField("guid", event.GUID).
 			WithField("comment", event.Comment.Body).
 			Debug("Handling issue comment hook event")
 		err = h.handleEvent(event.GUID, event.Comment.Created)
-	case *scm.PullRequestCommentHook:
-		log.
-			WithField("guid", event.GUID).
-			WithField("comment", event.Comment.Body).
-			Debug("Handling pullrequest comment hook event")
-		err = h.handleEvent(event.GUID, event.Comment.Created)
 	case *scm.PushHook:
+		// TODO switch/case on the event.Action ?
 		log.
 			WithField("guid", event.GUID).
 			WithField("commit", event.Commit.Sha).

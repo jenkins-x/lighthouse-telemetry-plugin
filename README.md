@@ -2,7 +2,7 @@
 
 This is a [Lighthouse](https://github.com/jenkins-x/lighthouse) (external) plugin, used to generate telemetry data, such as distributed traces.
 
-Here is an example of such a distributed trace, including:
+Here is an example of such a **distributed trace**, including:
 - the Lighthouse event: usually a GitHub (or gitlab/etc) webhook event for a git push or a pull request comment, at the origin of a new pipeline execution
 - 1 or more LighthouseJob: 1 for each triggered pipeline. In this case we can see a unit-tests pipeline and an integration-tests pipeline
 - for each Lighthouse job: the corresponding Tekton PipelineRun and its TaskRuns
@@ -11,9 +11,20 @@ Here is an example of such a distributed trace, including:
 
 ![distributed trace](docs/screenshots/pipeline-distributed-trace-tempo.png)
 
+Another example, for a "**gitops trace**" - which shows the promotion workflow that spans through multiple pull requests:
+- a (root) "application" pull request, in the `leo-scheduler` application/repository
+- 2 (child) "environment" pull requests, in the `leo-staging-env` and `leo-prod-env` repositories. These PRs have been created by the release pipeline of the `leo-scheduler` application, and are the result of "promoting" the new release, using a gitops workflow.
+
+![gitops trace](docs/screenshots/gitops-trace-tempo.png)
+
+Video demo: 
+https://github.com/jenkins-x/lighthouse-telemetry-plugin/raw/main/docs/screenshots/gitops-trace-tempo.mp4
+
 ## Why?
 
 Get insights into what is happening inside Jenkins X in reaction to a git event. Most of the time you won't need it, except when you need it ;-) for example to understand the bottleneck in your pipelines, what is taking time - maybe you're always pulling big images for example.
+
+It's also great for newcomers to understand the workflow, the different parts involved, and so on.
 
 ## How?
 
@@ -39,3 +50,13 @@ and then when each resource (job, pipelinerun, pod, ...) will finish, its associ
 TODO: make a diagram...
 
 **Note**: thanks to [kspan](https://github.com/weaveworks-experiments/kspan) for the idea ;-)
+
+### Gitops trace
+
+For the gitops traces, we build a tree of the pull requests, linking them together based on the PR's body/description. We expect the body of an "environment" PR (= a PR that is the result of a release pipeline) to contain the release notes of the application release to promote. Each application PR that is part of the release is linked in the release notes. We use these links to retrieve the "parent" pull requests.
+
+Once a PR has been merged, we wait for a configurable delay to see if a child PR has been created. This allow us to keep the parent span alive until all child PRs have been merged.
+
+Note that for the moment this feature is still beta, it has the following limitations:
+- only works for github - because we need provider-specific code to parse the links from the PR body.
+- you'll have to read the logs to find the trace ID. We plan to add a link to the trace in a PR comment.

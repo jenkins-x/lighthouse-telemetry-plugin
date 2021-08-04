@@ -299,7 +299,7 @@ func (h *KubernetesPodHandler) handlePod(pod *v1.Pod) error {
 	return nil
 }
 
-func (h *KubernetesPodHandler) getSpanFor(pod *v1.Pod) (*SpanHolder, error) {
+func (h *KubernetesPodHandler) getSpanFor(pod *v1.Pod) (*EventSpan, error) {
 	_, spanContext, err := extractTraceFrom(pod.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(pod)
@@ -362,7 +362,7 @@ func (h *KubernetesPodHandler) createSpanFor(pod *v1.Pod) error {
 	}
 	h.Store.AddKubePod(pod)
 
-	eventTrace.AddSpan(SpanHolder{
+	eventTrace.AddSpan(EventSpan{
 		Span: span,
 		Entity: Entity{
 			Type: EntityTypeKubePod,

@@ -27,6 +27,7 @@ var (
 	options struct {
 		namespace              string
 		resyncInterval         time.Duration
+		childPullRequestDelay  time.Duration
 		tracesExporterType     string
 		tracesExporterEndpoint string
 		lighthouseHMACKey      string
@@ -40,6 +41,7 @@ var (
 func init() {
 	pflag.StringVar(&options.namespace, "namespace", "jx", "Name of the jx namespace")
 	pflag.DurationVar(&options.resyncInterval, "resync-interval", 5*time.Minute, "Resync interval between full re-list operations")
+	pflag.DurationVar(&options.childPullRequestDelay, "child-pr-delay", 10*time.Minute, "Time to wait for a possible child pull request to be created, when generating gitops traces")
 	pflag.StringVar(&options.tracesExporterType, "traces-exporter-type", os.Getenv("TRACES_EXPORTER_TYPE"), "OpenTelemetry traces exporter type: otlp:grpc:insecure, otlp:http:insecure, jaeger:http:thrift")
 	pflag.StringVar(&options.tracesExporterEndpoint, "traces-exporter-endpoint", os.Getenv("TRACES_EXPORTER_ENDPOINT"), "OpenTelemetry traces exporter endpoint (host:port)")
 	pflag.StringVar(&options.lighthouseHMACKey, "lighthouse-hmac-key", os.Getenv("LIGHTHOUSE_HMAC_KEY"), "HMAC key used by Lighthouse to sign the webhooks")
@@ -113,12 +115,13 @@ func main() {
 	if spanExporter != nil {
 		logger.WithField("namespace", options.namespace).WithField("resyncInterval", options.resyncInterval).Info("Starting Trace Controller")
 		err = (&trace.Controller{
-			KubeConfig:        kConfig,
-			Namespace:         options.namespace,
-			ResyncInterval:    options.resyncInterval,
-			SpanExporter:      spanExporter,
-			LighthouseHandler: lighthouseHandler,
-			Logger:            logger,
+			KubeConfig:            kConfig,
+			Namespace:             options.namespace,
+			ResyncInterval:        options.resyncInterval,
+			ChildPullRequestDelay: options.childPullRequestDelay,
+			SpanExporter:          spanExporter,
+			LighthouseHandler:     lighthouseHandler,
+			Logger:                logger,
 		}).Start(ctx)
 		if err != nil {
 			logger.WithError(err).Fatal("Failed to start the trace controller")
