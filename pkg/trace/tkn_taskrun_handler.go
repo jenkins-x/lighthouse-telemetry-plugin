@@ -108,7 +108,7 @@ func (h *TektonTaskRunHandler) handleTaskRun(tr *tknv1beta1.TaskRun) error {
 	return nil
 }
 
-func (h *TektonTaskRunHandler) getSpanFor(tr *tknv1beta1.TaskRun) (*SpanHolder, error) {
+func (h *TektonTaskRunHandler) getSpanFor(tr *tknv1beta1.TaskRun) (*EventSpan, error) {
 	_, spanContext, err := extractTraceFrom(tr.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(tr)
@@ -171,7 +171,7 @@ func (h *TektonTaskRunHandler) createSpanFor(tr *tknv1beta1.TaskRun) error {
 	}
 	h.Store.AddTknTaskRun(tr)
 
-	eventTrace.AddSpan(SpanHolder{
+	eventTrace.AddSpan(EventSpan{
 		Span: span,
 		Entity: Entity{
 			Type: EntityTypeTknTaskRun,

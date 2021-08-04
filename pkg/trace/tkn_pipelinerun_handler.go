@@ -117,7 +117,7 @@ func (h *TektonPipelineRunHandler) handlePipelineRun(pr *tknv1beta1.PipelineRun)
 	return nil
 }
 
-func (h *TektonPipelineRunHandler) getSpanFor(pr *tknv1beta1.PipelineRun) (*SpanHolder, error) {
+func (h *TektonPipelineRunHandler) getSpanFor(pr *tknv1beta1.PipelineRun) (*EventSpan, error) {
 	_, spanContext, err := extractTraceFrom(pr.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(pr)
@@ -187,7 +187,7 @@ func (h *TektonPipelineRunHandler) createSpanFor(pr *tknv1beta1.PipelineRun) err
 	}
 	h.Store.AddTknPipelineRun(pr)
 
-	eventTrace.AddSpan(SpanHolder{
+	eventTrace.AddSpan(EventSpan{
 		Span: span,
 		Entity: Entity{
 			Type: EntityTypeTknPipelineRun,

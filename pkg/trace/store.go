@@ -21,7 +21,8 @@ import (
 )
 
 var (
-	ErrEventTraceNotFound = errors.New("the EventTrace could not be found in the Store")
+	ErrEventTraceNotFound  = errors.New("the EventTrace could not be found in the Store")
+	ErrGitopsTraceNotFound = errors.New("the GitopsTrace could not be found in the Store")
 )
 
 type Store struct {
@@ -47,6 +48,9 @@ type Store struct {
 	kubePodsMutex             sync.RWMutex
 	kubeEvents                map[Entity]*KubeEvents
 	kubeEventsMutex           sync.RWMutex
+
+	gitopsTraces      map[PullRequest]*GitopsTrace
+	gitopsTracesMutex sync.RWMutex
 }
 
 func NewStore() *Store {
@@ -58,6 +62,7 @@ func NewStore() *Store {
 		tknTaskRuns:          make(map[string]*tknv1beta1.TaskRun),
 		kubePods:             make(map[string]*v1.Pod),
 		kubeEvents:           make(map[Entity]*KubeEvents),
+		gitopsTraces:         make(map[PullRequest]*GitopsTrace),
 	}
 }
 
@@ -86,6 +91,34 @@ func (s *Store) AddEventTrace(eventTrace *EventTrace) {
 	s.eventTracesMutex.Lock()
 	defer s.eventTracesMutex.Unlock()
 	s.eventTraces[eventTrace.RootSpan.SpanContext().TraceID()] = eventTrace
+}
+
+func (s *Store) FindGitopsTraceAndSpan(pr PullRequest) (*GitopsTrace, *GitopsSpan, error) {
+	s.gitopsTracesMutex.RLock()
+	defer s.gitopsTracesMutex.RUnlock()
+	if gitopsTrace, found := s.gitopsTraces[pr]; found {
+		return gitopsTrace, gitopsTrace.RootSpan(), nil
+	}
+	for _, gitopsTrace := range s.gitopsTraces {
+		if span, found := gitopsTrace.GetSpanFor(pr); found {
+			return gitopsTrace, span, nil
+		}
+	}
+	return nil, nil, ErrGitopsTraceNotFound
+}
+
+func (s *Store) AddGitopsTrace(gitopsTrace GitopsTrace) {
+	s.gitopsTracesMutex.Lock()
+	defer s.gitopsTracesMutex.Unlock()
+	s.gitopsTraces[gitopsTrace.RootSpan().PullRequest] = &gitopsTrace
+}
+
+func (s *Store) IterateOnGitopsTraces(callback func(gitopsTrace *GitopsTrace)) {
+	s.gitopsTracesMutex.RLock()
+	defer s.gitopsTracesMutex.RUnlock()
+	for i := range s.gitopsTraces {
+		callback(s.gitopsTraces[i])
+	}
 }
 
 func (s *Store) AddLighthouseJob(job *lhv1alpha1.LighthouseJob) {
@@ -282,6 +315,7 @@ func (s *Store) DeleteKubeEventsFor(entity Entity) {
 func (s *Store) CollectGarbage() {
 	// TODO iterate over all event traces, and for each:
 	// if all the entities linked with the spans are not in the store, then remove the event trace
+	// same for the gitops traces
 }
 
 func mapContainsAll(candidate, filter map[string]string) bool {

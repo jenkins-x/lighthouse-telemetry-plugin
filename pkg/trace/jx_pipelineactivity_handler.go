@@ -207,7 +207,7 @@ func (h *JenkinsXPipelineActivityHandler) handlePipelineActivity(pa *jxv1.Pipeli
 	return nil
 }
 
-func (h *JenkinsXPipelineActivityHandler) getSpanFor(pa *jxv1.PipelineActivity) (*SpanHolder, error) {
+func (h *JenkinsXPipelineActivityHandler) getSpanFor(pa *jxv1.PipelineActivity) (*EventSpan, error) {
 	_, spanContext, err := extractTraceFrom(pa.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(pa)
@@ -286,7 +286,7 @@ func (h *JenkinsXPipelineActivityHandler) createSpanFor(pa *jxv1.PipelineActivit
 
 	h.Store.AddJxPipelineActivity(pa)
 
-	eventTrace.AddSpan(SpanHolder{
+	eventTrace.AddSpan(EventSpan{
 		Span: span,
 		Entity: Entity{
 			Type: EntityTypeJxPipelineActivity,

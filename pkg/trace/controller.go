@@ -21,12 +21,13 @@ import (
 )
 
 type Controller struct {
-	KubeConfig        *rest.Config
-	Namespace         string
-	ResyncInterval    time.Duration
-	SpanExporter      exporttrace.SpanExporter
-	LighthouseHandler *lighthouse.Handler
-	Logger            *logrus.Logger
+	KubeConfig            *rest.Config
+	Namespace             string
+	ResyncInterval        time.Duration
+	ChildPullRequestDelay time.Duration
+	SpanExporter          exporttrace.SpanExporter
+	LighthouseHandler     *lighthouse.Handler
+	Logger                *logrus.Logger
 }
 
 func (c *Controller) Start(ctx context.Context) error {
@@ -62,7 +63,7 @@ func (c *Controller) Start(ctx context.Context) error {
 		Logger:       c.Logger,
 	}
 
-	c.registerLighthouseWebhookHandlers(baseHander)
+	c.registerLighthouseWebhookHandlers(ctx, baseHander)
 
 	c.startLighthouseInformers(ctx, lhClient, baseHander)
 	c.startJenkinsXInformers(ctx, jxClient, baseHander)
@@ -72,16 +73,25 @@ func (c *Controller) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Controller) registerLighthouseWebhookHandlers(baseHandler BaseResourceEventHandler) {
-	handler := &LighthouseEventHandler{
+func (c *Controller) registerLighthouseWebhookHandlers(ctx context.Context, baseHandler BaseResourceEventHandler) {
+	eventHandler := &LighthouseEventHandler{
 		BaseResourceEventHandler: baseHandler,
 		Tracer: baseHandler.TracerProviderFor(
 			semconv.ServiceNamespaceKey.String(c.Namespace),
 			semconv.ServiceNameKey.String("WebHookEvent"),
 		).Tracer(""),
 	}
+	c.LighthouseHandler.RegisterWebhookHandler(eventHandler.handleWebhook)
 
-	c.LighthouseHandler.RegisterWebhookHandler(handler.handleWebhook)
+	pullRequestHandler := &LighthousePullRequestHandler{
+		BaseResourceEventHandler: baseHandler,
+		Tracer: baseHandler.TracerProviderFor(
+			semconv.ServiceNameKey.String("PullRequest"),
+		).Tracer(""),
+		ChildPullRequestDelay: c.ChildPullRequestDelay,
+	}
+	c.LighthouseHandler.RegisterWebhookHandler(pullRequestHandler.handleWebhook)
+	pullRequestHandler.Start(ctx.Done())
 }
 
 func (c *Controller) startLighthouseInformers(ctx context.Context, client *lhclientset.Clientset, baseHandler BaseResourceEventHandler) {

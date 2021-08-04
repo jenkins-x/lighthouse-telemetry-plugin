@@ -4,7 +4,10 @@ fullnameOverride:
 nameOverride:
 
 config:
+  # Resync interval between full re-list operations
   resyncInterval: 1h
+  # Time to wait for a possible child pull request to be created, when generating gitops traces
+  childPullRequestDelay: 10m
   logLevel: INFO
 
 secrets:
@@ -19,7 +22,7 @@ jx:
   releaseCRD: true
 
 image:
-  repository: gcr.io/jenkinsxio/lighthouse-telemetry-plugin
+  repository: ghcr.io/jenkins-x/lighthouse-telemetry-plugin
   # If no tag, fallback to the Chart's AppVersion
   tag:
   pullPolicy:
