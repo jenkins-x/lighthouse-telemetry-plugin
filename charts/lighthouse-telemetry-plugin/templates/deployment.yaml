@@ -34,7 +34,7 @@ spec:
         {{- end }}
         args:
         - --resync-interval={{ .Values.config.resyncInterval }}
-        - --child-pr-delay={( .Values.config.childPullRequestDelay })
+        - --child-pr-delay={{ .Values.config.childPullRequestDelay }}
         - --log-level={{ .Values.config.logLevel }}
         env:
         - name: XDG_CONFIG_HOME
