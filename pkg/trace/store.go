@@ -11,8 +11,8 @@ import (
 	lhv1alpha1 "github.com/jenkins-x/lighthouse/pkg/apis/lighthouse/v1alpha1"
 	lighthousev1alpha1 "github.com/jenkins-x/lighthouse/pkg/client/clientset/versioned/typed/lighthouse/v1alpha1"
 	"github.com/sirupsen/logrus"
-	tknv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1beta1"
+	tknv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
+	tektonv1 "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1"
 	"go.opentelemetry.io/otel/trace"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,8 +28,8 @@ var (
 type Store struct {
 	LighthouseJobClient      lighthousev1alpha1.LighthouseJobInterface
 	JxPipelineActivityClient jenkinsiov1.PipelineActivityInterface
-	TknPipelineRunClient     tektonv1beta1.PipelineRunInterface
-	TknTaskRunClient         tektonv1beta1.TaskRunInterface
+	TknPipelineRunClient     tektonv1.PipelineRunInterface
+	TknTaskRunClient         tektonv1.TaskRunInterface
 	KubePodClient            kv1.PodInterface
 	FallbackTimeout          time.Duration
 	Logger                   *logrus.Logger
@@ -40,9 +40,9 @@ type Store struct {
 	lhJobsMutex               sync.RWMutex
 	jxPipelineActivities      map[string]*jxv1.PipelineActivity
 	jxPipelineActivitiesMutex sync.RWMutex
-	tknPipelineRuns           map[string]*tknv1beta1.PipelineRun
+	tknPipelineRuns           map[string]*tknv1.PipelineRun
 	tknPipelineRunsMutex      sync.RWMutex
-	tknTaskRuns               map[string]*tknv1beta1.TaskRun
+	tknTaskRuns               map[string]*tknv1.TaskRun
 	tknTaskRunsMutex          sync.RWMutex
 	kubePods                  map[string]*v1.Pod
 	kubePodsMutex             sync.RWMutex
@@ -58,8 +58,8 @@ func NewStore() *Store {
 		eventTraces:          make(map[trace.TraceID]*EventTrace),
 		lhJobs:               make(map[string]*lhv1alpha1.LighthouseJob),
 		jxPipelineActivities: make(map[string]*jxv1.PipelineActivity),
-		tknPipelineRuns:      make(map[string]*tknv1beta1.PipelineRun),
-		tknTaskRuns:          make(map[string]*tknv1beta1.TaskRun),
+		tknPipelineRuns:      make(map[string]*tknv1.PipelineRun),
+		tknTaskRuns:          make(map[string]*tknv1.TaskRun),
 		kubePods:             make(map[string]*v1.Pod),
 		kubeEvents:           make(map[Entity]*KubeEvents),
 		gitopsTraces:         make(map[PullRequest]*GitopsTrace),
@@ -186,13 +186,13 @@ func (s *Store) DeleteJxPipelineActivity(paName string) {
 	})
 }
 
-func (s *Store) AddTknPipelineRun(pr *tknv1beta1.PipelineRun) {
+func (s *Store) AddTknPipelineRun(pr *tknv1.PipelineRun) {
 	s.tknPipelineRunsMutex.Lock()
 	defer s.tknPipelineRunsMutex.Unlock()
 	s.tknPipelineRuns[pr.Name] = pr
 }
 
-func (s *Store) GetTknPipelineRun(prName string) *tknv1beta1.PipelineRun {
+func (s *Store) GetTknPipelineRun(prName string) *tknv1.PipelineRun {
 	s.tknPipelineRunsMutex.RLock()
 	pr := s.tknPipelineRuns[prName]
 	s.tknPipelineRunsMutex.RUnlock()
@@ -224,13 +224,13 @@ func (s *Store) DeleteTknPipelineRun(prName string) {
 	})
 }
 
-func (s *Store) AddTknTaskRun(tr *tknv1beta1.TaskRun) {
+func (s *Store) AddTknTaskRun(tr *tknv1.TaskRun) {
 	s.tknTaskRunsMutex.Lock()
 	defer s.tknTaskRunsMutex.Unlock()
 	s.tknTaskRuns[tr.Name] = tr
 }
 
-func (s *Store) GetTknTaskRun(trName string) *tknv1beta1.TaskRun {
+func (s *Store) GetTknTaskRun(trName string) *tknv1.TaskRun {
 	s.tknTaskRunsMutex.RLock()
 	tr := s.tknTaskRuns[trName]
 	s.tknTaskRunsMutex.RUnlock()
