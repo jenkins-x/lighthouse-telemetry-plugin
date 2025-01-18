@@ -13,7 +13,8 @@ spec:
         stepTemplate:
           image: uses:jenkins-x/jx3-pipeline-catalog/tasks/go-plugin/release.yaml@versionStream
           name: ""
-          resources: {}
+          resources:
+            limit: {}
           workingDir: /workspace/source
         steps:
         - image: uses:jenkins-x/jx3-pipeline-catalog/tasks/git-clone/git-clone.yaml@versionStream
@@ -22,7 +23,10 @@ spec:
         - name: next-version
           resources: {}
         - name: jx-variables
-          resources: {}
+          resources:
+            requests:
+              cpu: 1400m
+              memory: 600Mi
         - name: release-binary
           resources: {}
         - name: build-and-push-image
