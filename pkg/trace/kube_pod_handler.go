@@ -23,7 +23,7 @@ type KubernetesPodHandler struct {
 	PodClient kv1.PodInterface
 }
 
-func (h *KubernetesPodHandler) OnAdd(obj interface{}) {
+func (h *KubernetesPodHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	pod, ok := obj.(*v1.Pod)
 	if !ok {
 		h.Logger.Warningf("KubernetesPodHandler called with non Pod object: %T", obj)

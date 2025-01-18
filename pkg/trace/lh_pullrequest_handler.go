@@ -291,7 +291,7 @@ func attributesFromEvent(event *scm.PullRequestHook) []attribute.KeyValue {
 		for _, assignee := range event.PullRequest.Assignees {
 			assignees = append(assignees, assignee.Login)
 		}
-		attrs = append(attrs, attribute.Key("assignees").Array(assignees))
+		attrs = append(attrs, attribute.Key("assignees").StringSlice(assignees))
 	}
 	return attrs
 }

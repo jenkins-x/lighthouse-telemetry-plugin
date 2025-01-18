@@ -23,7 +23,7 @@ type JenkinsXPipelineActivityHandler struct {
 	PipelineActivityClient jenkinsiov1.PipelineActivityInterface
 }
 
-func (h *JenkinsXPipelineActivityHandler) OnAdd(obj interface{}) {
+func (h *JenkinsXPipelineActivityHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	pa, ok := obj.(*jxv1.PipelineActivity)
 	if !ok {
 		h.Logger.Warningf("JenkinsXPipelineActivityHandler called with non PipelineActivity object: %T", obj)

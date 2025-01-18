@@ -62,7 +62,7 @@ func (t *EventTrace) AddSpan(span EventSpan) {
 	t.spans[span.SpanContext().SpanID()] = span
 }
 
-func (t EventTrace) EndRootSpanIfNeeded(options ...trace.SpanOption) {
+func (t EventTrace) EndRootSpanIfNeeded(options ...trace.SpanEndOption) {
 	if !t.RootSpan.IsRecording() {
 		return
 	}
@@ -168,11 +168,10 @@ type GitopsSpan struct {
 
 func extractTraceFrom(annotations map[string]string) (context.Context, trace.SpanContext, error) {
 	var (
-		ctx        = context.Background()
 		propagator = propagation.TraceContext{}
 	)
-	ctx = propagator.Extract(context.Background(), otelcarrier.AnnotationsCarrier(annotations))
-	sc := trace.RemoteSpanContextFromContext(ctx)
+	ctx := propagator.Extract(context.Background(), otelcarrier.AnnotationsCarrier(annotations))
+	sc := trace.SpanContextFromContext(ctx).WithRemote(true)
 	if !sc.IsValid() {
 		return ctx, sc, ErrTraceNotFound
 	}

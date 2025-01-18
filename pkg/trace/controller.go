@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
+
 	jxclientset "github.com/jenkins-x/jx-api/v4/pkg/client/clientset/versioned"
 	jxinformers "github.com/jenkins-x/jx-api/v4/pkg/client/informers/externalversions"
 	"github.com/jenkins-x/lighthouse-telemetry-plugin/internal/lighthouse"
@@ -13,8 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	tknclientset "github.com/tektoncd/pipeline/pkg/client/clientset/versioned"
 	tkninformers "github.com/tektoncd/pipeline/pkg/client/informers/externalversions"
-	exporttrace "go.opentelemetry.io/otel/sdk/export/trace"
-	"go.opentelemetry.io/otel/semconv"
+	exporttrace "go.opentelemetry.io/otel/sdk/trace"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

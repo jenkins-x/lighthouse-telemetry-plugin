@@ -7,7 +7,6 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/jenkins-x/lighthouse-telemetry-plugin/internal/kube"
@@ -16,11 +15,9 @@ import (
 	"github.com/jenkins-x/lighthouse-telemetry-plugin/pkg/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
-	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlphttp"
-	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	exporttrace "go.opentelemetry.io/otel/sdk/export/trace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	exporttrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 var (
@@ -42,7 +39,7 @@ func init() {
 	pflag.StringVar(&options.namespace, "namespace", "jx", "Name of the jx namespace")
 	pflag.DurationVar(&options.resyncInterval, "resync-interval", 5*time.Minute, "Resync interval between full re-list operations")
 	pflag.DurationVar(&options.childPullRequestDelay, "child-pr-delay", 10*time.Minute, "Time to wait for a possible child pull request to be created, when generating gitops traces")
-	pflag.StringVar(&options.tracesExporterType, "traces-exporter-type", os.Getenv("TRACES_EXPORTER_TYPE"), "OpenTelemetry traces exporter type: otlp:grpc:insecure, otlp:http:insecure, jaeger:http:thrift")
+	pflag.StringVar(&options.tracesExporterType, "traces-exporter-type", os.Getenv("TRACES_EXPORTER_TYPE"), "OpenTelemetry traces exporter type: otlp:grpc:insecure, otlp:http:insecure")
 	pflag.StringVar(&options.tracesExporterEndpoint, "traces-exporter-endpoint", os.Getenv("TRACES_EXPORTER_ENDPOINT"), "OpenTelemetry traces exporter endpoint (host:port)")
 	pflag.StringVar(&options.lighthouseHMACKey, "lighthouse-hmac-key", os.Getenv("LIGHTHOUSE_HMAC_KEY"), "HMAC key used by Lighthouse to sign the webhooks")
 	pflag.StringVar(&options.listenAddr, "listen-addr", ":8080", "Address on which the HTTP server will listen for incoming connections")
@@ -86,29 +83,18 @@ func main() {
 		logger.WithField("type", options.tracesExporterType).WithField("endpoint", options.tracesExporterEndpoint).Info("Initializing OpenTelemetry Traces Exporter")
 		switch options.tracesExporterType {
 		case "otlp:grpc:insecure":
-			spanExporter, err = otlp.NewExporter(ctx, otlpgrpc.NewDriver(
-				otlpgrpc.WithEndpoint(options.tracesExporterEndpoint),
-				otlpgrpc.WithInsecure(),
-			))
+			spanExporter, err = otlptracegrpc.New(ctx,
+				otlptracegrpc.WithEndpoint(options.tracesExporterEndpoint),
+				otlptracegrpc.WithInsecure(),
+			)
 		case "otlp:http:insecure":
-			spanExporter, err = otlp.NewExporter(ctx, otlphttp.NewDriver(
-				otlphttp.WithEndpoint(options.tracesExporterEndpoint),
-				otlphttp.WithInsecure(),
-			))
-		case "jaeger:http:thrift":
-			endpoint := fmt.Sprintf("http://%s/api/traces", options.tracesExporterEndpoint)
-			_, err = http.Post(endpoint, "application/x-thrift", nil)
-			if err != nil && strings.Contains(err.Error(), "no such host") {
-				logger.WithError(err).Warning("Traces Exporter Endpoint configuration error. Maybe you need to install/configure the Observability stack? https://jenkins-x.io/v3/admin/guides/observability/ The OpenTelemetry Tracing feature won't be enabled until this is fixed.")
-				err = nil // ensure we won't fail. we just need to NOT set the exporter
-			} else {
-				spanExporter, err = jaeger.NewRawExporter(
-					jaeger.WithCollectorEndpoint(endpoint),
-				)
+			spanExporter, err = otlptracehttp.New(ctx,
+				otlptracehttp.WithEndpoint(options.tracesExporterEndpoint),
+				otlptracehttp.WithInsecure(),
+			)
+			if err != nil {
+				logger.WithError(err).Fatal("failed to create an OpenTelemetry Exporter")
 			}
-		}
-		if err != nil {
-			logger.WithError(err).Fatal("failed to create an OpenTelemetry Exporter")
 		}
 	}
 

@@ -18,7 +18,7 @@ type TektonTaskRunHandler struct {
 	TaskRunClient tektonv1beta1.TaskRunInterface
 }
 
-func (h *TektonTaskRunHandler) OnAdd(obj interface{}) {
+func (h *TektonTaskRunHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	tr, ok := obj.(*tknv1beta1.TaskRun)
 	if !ok {
 		h.Logger.Warningf("TektonTaskRunHandler called with non TaskRun object: %T", obj)
