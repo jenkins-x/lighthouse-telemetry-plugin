@@ -11,7 +11,7 @@ type KubernetesEventHandler struct {
 	BaseResourceEventHandler
 }
 
-func (h *KubernetesEventHandler) OnAdd(obj interface{}) {
+func (h *KubernetesEventHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	event, ok := obj.(*v1.Event)
 	if !ok {
 		h.Logger.Warningf("KubernetesEventHandler called with non Event object: %T", obj)

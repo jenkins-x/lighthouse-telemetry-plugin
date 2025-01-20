@@ -21,7 +21,7 @@ type TektonPipelineRunHandler struct {
 	PipelineRunClient tektonv1beta1.PipelineRunInterface
 }
 
-func (h *TektonPipelineRunHandler) OnAdd(obj interface{}) {
+func (h *TektonPipelineRunHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	pr, ok := obj.(*tknv1beta1.PipelineRun)
 	if !ok {
 		h.Logger.Warningf("TektonPipelineRunHandler called with non PipelineRun object: %T", obj)

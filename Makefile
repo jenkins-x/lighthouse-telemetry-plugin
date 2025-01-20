@@ -14,7 +14,7 @@ ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
 #GO_VERSION := $(shell $(GO) version | sed -e 's/^[^0-9.]*\([0-9.]*\).*/\1/')
-GO_VERSION := 1.13
+GO_VERSION := 1.23
 
 GO_DEPENDENCIES := $(call rwildcard,pkg/,*.go) $(call rwildcard,cmd/j,*.go)
 
@@ -147,7 +147,7 @@ clean: ## Clean the generated artifacts
 	rm -rf build release dist
 
 get-fmt-deps: ## Install test dependencies
-	$(GO_NOMOD) get golang.org/x/tools/cmd/goimports
+	$(GO_NOMOD) install golang.org/x/tools/cmd/goimports
 
 .PHONY: fmt
 fmt: importfmt ## Format the code

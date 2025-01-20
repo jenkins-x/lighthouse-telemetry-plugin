@@ -22,7 +22,7 @@ type LighthouseJobHandler struct {
 	LighthouseJobClient lighthousev1alpha1.LighthouseJobInterface
 }
 
-func (h *LighthouseJobHandler) OnAdd(obj interface{}) {
+func (h *LighthouseJobHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	job, ok := obj.(*lhv1alpha1.LighthouseJob)
 	if !ok {
 		h.Logger.Warningf("LighthouseJobHandler called with non LighthouseJob object: %T", obj)

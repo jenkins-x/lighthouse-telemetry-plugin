@@ -3,8 +3,8 @@ package trace
 import (
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	exporttrace "go.opentelemetry.io/otel/sdk/export/trace"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
+	exporttrace "go.opentelemetry.io/otel/sdk/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -23,6 +23,6 @@ func (h BaseResourceEventHandler) TracerProviderFor(attrs ...attribute.KeyValue)
 			sdktrace.WithMaxExportBatchSize(512),
 		*/
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithResource(sdkresource.NewWithAttributes(attrs...)),
+		sdktrace.WithResource(sdkresource.NewSchemaless(attrs...)),
 	)
 }
