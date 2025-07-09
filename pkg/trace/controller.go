@@ -55,8 +55,8 @@ func (c *Controller) Start(ctx context.Context) error {
 	store.KubePodClient = kClient.CoreV1().Pods(c.Namespace)
 	store.LighthouseJobClient = lhClient.LighthouseV1alpha1().LighthouseJobs(c.Namespace)
 	store.JxPipelineActivityClient = jxClient.JenkinsV1().PipelineActivities(c.Namespace)
-	store.TknPipelineRunClient = tknClient.TektonV1beta1().PipelineRuns(c.Namespace)
-	store.TknTaskRunClient = tknClient.TektonV1beta1().TaskRuns(c.Namespace)
+	store.TknPipelineRunClient = tknClient.TektonV1().PipelineRuns(c.Namespace)
+	store.TknTaskRunClient = tknClient.TektonV1().TaskRuns(c.Namespace)
 
 	baseHander := BaseResourceEventHandler{
 		Store:        store,
@@ -141,7 +141,7 @@ func (c *Controller) startTektonInformers(ctx context.Context, client *tknclient
 			semconv.ServiceNamespaceKey.String(c.Namespace),
 			semconv.ServiceNameKey.String("Tekton.PipelineRun"),
 		).Tracer(""),
-		PipelineRunClient: client.TektonV1beta1().PipelineRuns(c.Namespace),
+		PipelineRunClient: client.TektonV1().PipelineRuns(c.Namespace),
 	})
 	tektonInformerFactory.Tekton().V1beta1().TaskRuns().Informer().AddEventHandler(&TektonTaskRunHandler{
 		BaseResourceEventHandler: baseHandler,
@@ -149,7 +149,7 @@ func (c *Controller) startTektonInformers(ctx context.Context, client *tknclient
 			semconv.ServiceNamespaceKey.String(c.Namespace),
 			semconv.ServiceNameKey.String("Tekton.TaskRun"),
 		).Tracer(""),
-		TaskRunClient: client.TektonV1beta1().TaskRuns(c.Namespace),
+		TaskRunClient: client.TektonV1().TaskRuns(c.Namespace),
 	})
 	tektonInformerFactory.Start(ctx.Done())
 }

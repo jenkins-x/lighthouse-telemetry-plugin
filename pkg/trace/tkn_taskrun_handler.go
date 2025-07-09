@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	tknv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1beta1"
+	tknv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
+	tektonv1 "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1"
 	"go.opentelemetry.io/otel/trace"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -15,11 +15,11 @@ import (
 type TektonTaskRunHandler struct {
 	BaseResourceEventHandler
 	Tracer        trace.Tracer
-	TaskRunClient tektonv1beta1.TaskRunInterface
+	TaskRunClient tektonv1.TaskRunInterface
 }
 
 func (h *TektonTaskRunHandler) OnAdd(obj interface{}, isInInitialList bool) {
-	tr, ok := obj.(*tknv1beta1.TaskRun)
+	tr, ok := obj.(*tknv1.TaskRun)
 	if !ok {
 		h.Logger.Warningf("TektonTaskRunHandler called with non TaskRun object: %T", obj)
 		return
@@ -38,7 +38,7 @@ func (h *TektonTaskRunHandler) OnAdd(obj interface{}, isInInitialList bool) {
 }
 
 func (h *TektonTaskRunHandler) OnUpdate(oldObj, newObj interface{}) {
-	newTR, ok := newObj.(*tknv1beta1.TaskRun)
+	newTR, ok := newObj.(*tknv1.TaskRun)
 	if !ok {
 		h.Logger.Warningf("TektonTaskRunHandler called with non TaskRun object: %T", newObj)
 		return
@@ -57,7 +57,7 @@ func (h *TektonTaskRunHandler) OnUpdate(oldObj, newObj interface{}) {
 }
 
 func (h *TektonTaskRunHandler) OnDelete(obj interface{}) {
-	tr, ok := obj.(*tknv1beta1.TaskRun)
+	tr, ok := obj.(*tknv1.TaskRun)
 	if !ok {
 		h.Logger.Warningf("TektonTaskRunHandler called with non TaskRun object: %T", obj)
 		return
@@ -69,7 +69,7 @@ func (h *TektonTaskRunHandler) OnDelete(obj interface{}) {
 	h.Store.DeleteTknTaskRun(tr.Name)
 }
 
-func (h *TektonTaskRunHandler) handleTaskRun(tr *tknv1beta1.TaskRun) error {
+func (h *TektonTaskRunHandler) handleTaskRun(tr *tknv1.TaskRun) error {
 	log := h.Logger.WithField("TaskRun", tr.Name)
 	if tr.Annotations == nil {
 		tr.Annotations = make(map[string]string)
@@ -108,7 +108,7 @@ func (h *TektonTaskRunHandler) handleTaskRun(tr *tknv1beta1.TaskRun) error {
 	return nil
 }
 
-func (h *TektonTaskRunHandler) getSpanFor(tr *tknv1beta1.TaskRun) (*EventSpan, error) {
+func (h *TektonTaskRunHandler) getSpanFor(tr *tknv1.TaskRun) (*EventSpan, error) {
 	_, spanContext, err := extractTraceFrom(tr.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(tr)
@@ -136,7 +136,7 @@ func (h *TektonTaskRunHandler) getSpanFor(tr *tknv1beta1.TaskRun) (*EventSpan, e
 	return &span, nil
 }
 
-func (h *TektonTaskRunHandler) createSpanFor(tr *tknv1beta1.TaskRun) error {
+func (h *TektonTaskRunHandler) createSpanFor(tr *tknv1.TaskRun) error {
 	pr := h.Store.GetTknPipelineRun(tr.Labels["tekton.dev/pipelineRun"])
 	if pr == nil {
 		return fmt.Errorf("failed to find the parent PipelineRun for Tekton TaskRun %s: %w", tr.Name, ErrParentEntityNotFound)

@@ -7,8 +7,8 @@ import (
 
 	lhv1alpha1 "github.com/jenkins-x/lighthouse/pkg/apis/lighthouse/v1alpha1"
 	lhutil "github.com/jenkins-x/lighthouse/pkg/util"
-	tknv1beta1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	tektonv1beta1 "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1beta1"
+	tknv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
+	tektonv1 "github.com/tektoncd/pipeline/pkg/client/clientset/versioned/typed/pipeline/v1"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,11 +18,11 @@ import (
 type TektonPipelineRunHandler struct {
 	BaseResourceEventHandler
 	Tracer            trace.Tracer
-	PipelineRunClient tektonv1beta1.PipelineRunInterface
+	PipelineRunClient tektonv1.PipelineRunInterface
 }
 
 func (h *TektonPipelineRunHandler) OnAdd(obj interface{}, isInInitialList bool) {
-	pr, ok := obj.(*tknv1beta1.PipelineRun)
+	pr, ok := obj.(*tknv1.PipelineRun)
 	if !ok {
 		h.Logger.Warningf("TektonPipelineRunHandler called with non PipelineRun object: %T", obj)
 		return
@@ -41,7 +41,7 @@ func (h *TektonPipelineRunHandler) OnAdd(obj interface{}, isInInitialList bool) 
 }
 
 func (h *TektonPipelineRunHandler) OnUpdate(oldObj, newObj interface{}) {
-	newPR, ok := newObj.(*tknv1beta1.PipelineRun)
+	newPR, ok := newObj.(*tknv1.PipelineRun)
 	if !ok {
 		h.Logger.Warningf("TektonPipelineRunHandler called with non PipelineRun object: %T", newObj)
 		return
@@ -60,7 +60,7 @@ func (h *TektonPipelineRunHandler) OnUpdate(oldObj, newObj interface{}) {
 }
 
 func (h *TektonPipelineRunHandler) OnDelete(obj interface{}) {
-	pr, ok := obj.(*tknv1beta1.PipelineRun)
+	pr, ok := obj.(*tknv1.PipelineRun)
 	if !ok {
 		h.Logger.Warningf("TektonPipelineRunHandler called with non PipelineRun object: %T", obj)
 		return
@@ -72,7 +72,7 @@ func (h *TektonPipelineRunHandler) OnDelete(obj interface{}) {
 	h.Store.DeleteTknPipelineRun(pr.Name)
 }
 
-func (h *TektonPipelineRunHandler) handlePipelineRun(pr *tknv1beta1.PipelineRun) error {
+func (h *TektonPipelineRunHandler) handlePipelineRun(pr *tknv1.PipelineRun) error {
 	log := h.Logger.WithField("PipelineRun", pr.Name)
 	if pr.Annotations == nil {
 		pr.Annotations = make(map[string]string)
@@ -117,7 +117,7 @@ func (h *TektonPipelineRunHandler) handlePipelineRun(pr *tknv1beta1.PipelineRun)
 	return nil
 }
 
-func (h *TektonPipelineRunHandler) getSpanFor(pr *tknv1beta1.PipelineRun) (*EventSpan, error) {
+func (h *TektonPipelineRunHandler) getSpanFor(pr *tknv1.PipelineRun) (*EventSpan, error) {
 	_, spanContext, err := extractTraceFrom(pr.Annotations)
 	if errors.Is(err, ErrTraceNotFound) {
 		err := h.createSpanFor(pr)
@@ -145,7 +145,7 @@ func (h *TektonPipelineRunHandler) getSpanFor(pr *tknv1beta1.PipelineRun) (*Even
 	return &span, nil
 }
 
-func (h *TektonPipelineRunHandler) createSpanFor(pr *tknv1beta1.PipelineRun) error {
+func (h *TektonPipelineRunHandler) createSpanFor(pr *tknv1.PipelineRun) error {
 	job, err := h.getParentLighthouseJob(pr)
 	if err != nil {
 		return fmt.Errorf("failed to find the parent LighthouseJob for Tekton PipelineRun %s: %w", pr.Name, err)
@@ -199,7 +199,7 @@ func (h *TektonPipelineRunHandler) createSpanFor(pr *tknv1beta1.PipelineRun) err
 	return nil
 }
 
-func (h *TektonPipelineRunHandler) getParentLighthouseJob(pr *tknv1beta1.PipelineRun) (*lhv1alpha1.LighthouseJob, error) {
+func (h *TektonPipelineRunHandler) getParentLighthouseJob(pr *tknv1.PipelineRun) (*lhv1alpha1.LighthouseJob, error) {
 	job := h.Store.FindLighthouseJob(map[string]string{
 		lhutil.OrgLabel:      labelValue(pr.Labels, lhutil.OrgLabel, "owner"),
 		lhutil.RepoLabel:     labelValue(pr.Labels, lhutil.RepoLabel, "repository"),
