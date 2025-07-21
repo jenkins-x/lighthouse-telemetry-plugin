@@ -135,7 +135,7 @@ func (c *Controller) startTektonInformers(ctx context.Context, client *tknclient
 		c.ResyncInterval,
 		tkninformers.WithNamespace(c.Namespace),
 	)
-	tektonInformerFactory.Tekton().V1beta1().PipelineRuns().Informer().AddEventHandler(&TektonPipelineRunHandler{
+	tektonInformerFactory.Tekton().V1().PipelineRuns().Informer().AddEventHandler(&TektonPipelineRunHandler{
 		BaseResourceEventHandler: baseHandler,
 		Tracer: baseHandler.TracerProviderFor(
 			semconv.ServiceNamespaceKey.String(c.Namespace),
@@ -143,7 +143,7 @@ func (c *Controller) startTektonInformers(ctx context.Context, client *tknclient
 		).Tracer(""),
 		PipelineRunClient: client.TektonV1().PipelineRuns(c.Namespace),
 	})
-	tektonInformerFactory.Tekton().V1beta1().TaskRuns().Informer().AddEventHandler(&TektonTaskRunHandler{
+	tektonInformerFactory.Tekton().V1().TaskRuns().Informer().AddEventHandler(&TektonTaskRunHandler{
 		BaseResourceEventHandler: baseHandler,
 		Tracer: baseHandler.TracerProviderFor(
 			semconv.ServiceNamespaceKey.String(c.Namespace),
