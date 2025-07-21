@@ -3,9 +3,9 @@ module github.com/jenkins-x/lighthouse-telemetry-plugin
 go 1.24.4
 
 require (
-	github.com/jenkins-x/go-scm v1.14.59
+	github.com/jenkins-x/go-scm v1.15.1
 	github.com/jenkins-x/jx-api/v4 v4.8.1
-	github.com/jenkins-x/lighthouse v1.24.2
+	github.com/jenkins-x/lighthouse v1.25.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/scylladb/go-set v1.0.2
 	github.com/sirupsen/logrus v1.9.3
