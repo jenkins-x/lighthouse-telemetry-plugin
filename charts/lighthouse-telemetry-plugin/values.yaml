@@ -2,37 +2,31 @@
 
 fullnameOverride:
 nameOverride:
-
 config:
   # Resync interval between full re-list operations
   resyncInterval: 1h
   # Time to wait for a possible child pull request to be created, when generating gitops traces
   childPullRequestDelay: 10m
   logLevel: INFO
-
 secrets:
   lighthouse:
     hmac:
       secretKeyRef:
         name: lighthouse-hmac-token
         key: hmac
-
 jx:
   # whether to create a Release CRD when installing charts with Release CRDs included
   releaseCRD: true
-
 image:
   repository: ghcr.io/jenkins-x/lighthouse-telemetry-plugin
   # If no tag, fallback to the Chart's AppVersion
-  tag:
+  tag: 0.1.4
   pullPolicy:
-
 deployment:
   replicas: 1
   revisionHistoryLimit: 2
   labels: {}
   annotations: {}
-
 pod:
   resources:
     requests:
@@ -54,19 +48,16 @@ pod:
   securityContext:
     fsGroup: 1000
   env: {}
-
 service:
   port: 80
   type:
   loadBalancerIP:
   labels: {}
   annotations: {}
-
 serviceAccount:
   # allow additional annotations to be added to the ServiceAccount
   # such as for workload identity on clouds
   annotations: {}
-
 role:
   rules:
   - apiGroups: ["jenkins.io"]
