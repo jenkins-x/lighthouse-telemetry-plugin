@@ -185,6 +185,7 @@ github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+github.com/tektoncd/pipeline v1.2.0/go.mod h1:am+EgEYjPVclhZpum04YUM7yzkggyWq40vp8T3U9UxU=
 github.com/tektoncd/pipeline v1.13.1 h1:FluwzvfRuEKhxkGSQqXcjaaRK7IfGohjwFtA9/r0AMQ=
 github.com/tektoncd/pipeline v1.13.1/go.mod h1:71cP/rC6s/j+f8McEdFCdbcrLEODIfPIFDUqvMHeouM=
 github.com/ucarion/urlpath v0.0.0-20200424170820-7ccc79b76bbb h1:Ywfo8sUltxogBpFuMOFRrrSifO788kAFxmvVw31PtQQ=
