@@ -7,7 +7,7 @@ Here is an example of such a **distributed trace**, including:
 - 1 or more LighthouseJob: 1 for each triggered pipeline. In this case we can see a unit-tests pipeline and an integration-tests pipeline
 - for each Lighthouse job: the corresponding Tekton PipelineRun and its TaskRuns
 - for each TaskRun: the corresponding Pod, with every event: scheduling, pulling/creating/staring containers, etc
-- and the Jenkins X Pipeline Activity, with the timing for each step
+- and the JayeX Pipeline Activity, with the timing for each step
 
 ![distributed trace](docs/screenshots/pipeline-distributed-trace-tempo.png)
 
@@ -22,7 +22,7 @@ https://github.com/jenkins-x/lighthouse-telemetry-plugin/raw/main/docs/screensho
 
 ## Why?
 
-Get insights into what is happening inside Jenkins X in reaction to a git event. Most of the time you won't need it, except when you need it ;-) for example to understand the bottleneck in your pipelines, what is taking time - maybe you're always pulling big images for example.
+Get insights into what is happening inside JayeX in reaction to a git event. Most of the time you won't need it, except when you need it ;-) for example to understand the bottleneck in your pipelines, what is taking time - maybe you're always pulling big images for example.
 
 It's also great for newcomers to understand the workflow, the different parts involved, and so on.
 
@@ -45,7 +45,7 @@ when it will see a new tekton pipelinerun, it will retrieve its "parent" lightho
 
 and so on for the taskrun, and then its child pod. The "trick" here is to propagate the span context in an annotation of the resources - the same way you will do with an HTTP header in a "classic" microservices architecture based on synchronous requests.
 
-and then when each resource (job, pipelinerun, pod, ...) will finish, its associated span will be ended - and pushed by the exporter to whatever backend has been configured (grafana tempo by default in Jenkins X).
+and then when each resource (job, pipelinerun, pod, ...) will finish, its associated span will be ended - and pushed by the exporter to whatever backend has been configured (grafana tempo by default in JayeX).
 
 TODO: make a diagram...
 
