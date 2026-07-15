@@ -238,7 +238,7 @@ func (h *JenkinsXPipelineActivityHandler) getSpanFor(pa *jxv1.PipelineActivity) 
 func (h *JenkinsXPipelineActivityHandler) createSpanFor(pa *jxv1.PipelineActivity) error {
 	job, err := h.getParentLighthouseJob(pa)
 	if err != nil {
-		return fmt.Errorf("failed to find the parent LighthouseJob for Jenkins X PipelineActivity %s: %w", pa.Name, err)
+		return fmt.Errorf("failed to find the parent LighthouseJob for JayeX PipelineActivity %s: %w", pa.Name, err)
 	}
 
 	ctx, parentSpanContext, err := extractTraceFrom(job.Annotations)

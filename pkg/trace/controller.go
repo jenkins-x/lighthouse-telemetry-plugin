@@ -42,7 +42,7 @@ func (c *Controller) Start(ctx context.Context) error {
 	}
 	jxClient, err := jxclientset.NewForConfig(c.KubeConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create a Jenkins X client: %w", err)
+		return fmt.Errorf("failed to create a JayeX client: %w", err)
 	}
 	tknClient, err := tknclientset.NewForConfig(c.KubeConfig)
 	if err != nil {
